@@ -1,0 +1,55 @@
+{
+  "name": "dsh-sidebar-pins",
+  "version": "0.1.0",
+  "description": "Codex-style pinned/recent sidebar panes with one full row menu for DeepSeek Harness — pins, per-row actions, file-manager reveal, and a guarded workspace delete route.",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "sidebar",
+    "pin",
+    "pinned-sessions",
+    "codex"
+  ],
+  "license": "MIT",
+  "author": "renlo",
+  "type": "module",
+  "main": "./host.js",
+  "exports": {
+    ".": "./host.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "host.js",
+    "client.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node test/host.test.mjs && node test/sidebar.test.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boyl/dsh-sidebar-pins.git"
+  },
+  "homepage": "https://github.com/boyl/dsh-sidebar-pins#readme",
+  "bugs": {
+    "url": "https://github.com/boyl/dsh-sidebar-pins/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.1"
+  }
+}

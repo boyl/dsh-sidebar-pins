@@ -1,0 +1,10 @@
+# dsh-sidebar-pins bundle patch: mounts this plugin's row in the profile.
+#
+#   dsh plugin --profile desktop add <path-or-git-spec>
+#
+# The plugin is UI-only: the host half is an inert entry that exists so the
+# loader can compose the bundle and serve the client half.
+
+- insert:
+    - id: dsh-sidebar-pins
+      name: dsh-sidebar-pins

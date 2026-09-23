@@ -1,0 +1,124 @@
+# dsh-sidebar-pins
+
+给 DeepSeek Harness Web GUI 的**一套**侧栏会话管理：Codex 式的「置顶 / 最近」两栏，加上**所有行**都能用的完整右键菜单。
+
+它替代的是"两栏插件 + 菜单插件"两个插件拼起来的做法：那种拼法里，两栏插件会把置顶会话的官方行 `display:none`、再自己 `createElement` 造一行，而菜单插件只能靠 React fiber 从官方行反查会话 id —— 于是**恰好在你置顶的那些行上**菜单会静默失效、退回原生菜单。这里两个问题合成一个插件解决：置顶行由本插件渲染，官方行解析一次后也写上 `data-dsh-pins-id`，两者共用同一个菜单实现。
+
+## 安装
+
+```sh
+dsh plugin --profile desktop add github:boyl/dsh-sidebar-pins
+# Web 版 profile 就把 desktop 换成 web
+```
+
+装完**重启 DSH Desktop**（bundle 层只在启动时组合）。卸载：
+
+```sh
+dsh plugin --profile desktop remove dsh-sidebar-pins
+```
+
+也可用 DSH 自带的插件市场查看已装列表。本插件没有 npm 包，只能走上面的 GitHub 源安装。
+
+## 功能
+
+侧栏布局：
+
+```
+┌─ 侧栏 ─────────────────────┐
+│ 置顶  1                    │
+│   📌 简历结合生成五道面试题   │
+│ ─────────────────────────  │
+│ 最近                       │
+│    安装蓝色大肥鱼桌宠        │
+│    拉取 codex-skills 技能仓库│
+└────────────────────────────┘
+```
+
+两栏各自独立滚动；置顶过的会话不再出现在「最近」里；后置顶的排最前。
+
+置顶入口：悬停任意会话行出现 📌，点它置顶；或在菜单里选「置顶」；置顶栏里的 📌 再点一次取消。
+
+图标与原生行对齐：图钉用 Material Icons 的 `push_pin` 实心字形（16px，与 codex-pins 同一字形，置顶时着品牌蓝）；⋯ 用原生 `IconEllipsisOutline16` 的几何；行内按钮的尺寸与配色照抄原生 `iconButton`（16×16、`label-tertiary`，悬停转 `label-primary`，无背景色块）。
+
+置顶/取消置顶**不弹文案提示**：状态本身看得见（图钉变品牌蓝、会话进出置顶栏、标题后数量变化、工作区行左侧蓝条）。只有失败才提示（例如工作区顺序没能改变）；其它动作（标记未读、归档、复制、删除、改名）仍保留成功/失败提示。
+
+菜单（会话行右键、双击、或点行尾的 ⋯）：
+
+| 项目 | 实现 |
+| --- | --- |
+| 置顶 / 取消置顶 | 本地 store + 置顶栏渲染 |
+| 重命名 | `ctx.sessions.binding(id).session.rename()` |
+| 标记为未读 / 已读 | 本地 store，行左侧橙色条 + 标题加粗；点开该会话自动转已读 |
+| 归档会话 | `ctx.workspaces.archiveSession()` |
+| 分叉会话 | `ctx.sessions.fork({ increaseTitle: true })` 并打开子会话 |
+| 复制会话链接 / 复制会话标题 | 剪贴板（带 textarea 兜底） |
+| 在新窗口中打开 | `?session=<id>` 深链 `window.open` |
+| 在 Finder / 资源管理器 / 文件管理器中打开 | 调官方 `POST /open-in-app/open`，按平台传 `finder` / `explorer` / `filemanager` + 会话 `cwd` |
+
+工作区行（Project 行）同样是右键/双击/⋯：
+
+| 项目 | 实现 |
+| --- | --- |
+| 置顶 / 取消置顶 | `ctx.workspaces.insertBefore()` 把工作区移到宿主顺序最前（取消不会自动恢复原顺序） |
+| 重命名 | `ctx.workspaces.rename()` |
+| 新建会话 | `ctx.workspaces.startSession()` |
+| 复制路径 | 剪贴板 |
+| 在 Finder / 资源管理器 / 文件管理器中打开 | 官方 `POST /open-in-app/open` + 工作区 `path` |
+| 从工作区列表中移除（保留磁盘） | `ctx.workspaces.delete()`，二次确认 |
+| 删除工作区（含磁盘） | 本插件 host 路由 `POST /dsh-sidebar-pins/delete-workspace`，见下 |
+
+### 一行只有一个 ⋯
+
+原生行本来就有自己的行内菜单按钮：`rowActions` 里的第一个 `button.iconButton`（由 `@deepseek-ai/dsh-client-ui-primitives` 的 `Menu` 组件渲染，`display:none`、只在悬停或菜单展开时出现）。所以本插件**不再注入自己的 ⋯**，而是接管它：
+
+- 在 `document` 的 capture 阶段拦下对那个 trigger 的点击（此时早于 React 挂在根容器上的委托监听），`stopPropagation()` 让原生菜单不会同时打开，然后弹出我们的完整菜单 —— 一个按钮，功能全集。
+- 工作区行的 `rowActions` 里还有第二个 `iconButton`（＋ 新建会话），只认第一个，所以那个按钮保持原生行为（测试有断言）。
+- 置顶栏的行是我们自己渲染的、没有原生 trigger，那一行的 ⋯ 由我们提供。
+- 右键 / 双击任意行仍然直接打开我们的菜单；原生样式与 hook 若变化，接管失效时会退回原生菜单，不会报错。
+
+### 唯一一条自带 host 路由
+
+`POST /dsh-sidebar-pins/delete-workspace` body `{ workspaceId, confirm }`。渲染进程没有文件系统权限，删目录只能由 host 做，所以这里有路由；但设计上刻意比"社区同类实现"收紧：
+
+1. **只收 workspaceId，不收 path** —— 请求里带着 path 就等于把 `rm -rf <任意目录>` 暴露给页面。host 用 `ctx.workspaceRegistry.list()` 自己解析路径，可删集合恰好等于用户自己注册过的工作区。
+2. **必须回显工作区标题** —— 客户端弹窗要求手打名称，host 再比对一次（`confirm-mismatch`）。
+3. **危险路径白名单式拒绝** —— `/`、盘根，以及 `$HOME`、`process.cwd()`、`$DSH_HOME`、`%SystemRoot%` 的**相等或祖先**路径一律拒绝（`forbidden-path`）。
+4. **围栏** —— `ctx.connection.requestRejection(req)`：Host/Origin 校验 + 浏览器鉴权，和官方 `open-in-app` 路由同一套；桌面壳的 `DesktopWebServer` 在外面还会再验一次 renderer token。
+5. **请求体上限 8KB**、只接受 `POST`、只接受两个短字符串。
+6. 目录删除后归档该工作区的会话并注销工作区记录（`{ removed, archived, unregistered }` 逐项回报）；目录本来就没了也能正常注销。
+7. 路由注册带引用计数的 lease —— 链式安装（`link:`）在 hot reload 下可能被应用两次，而新版 WebServer 拒绝重复 exact 路由。
+
+## 数据
+
+- 全部状态在浏览器 `localStorage`，键 `dsh-sidebar-pins.v1`：`{ v, pinned[], unread[], pinnedWorkspaces[] }`。
+- 首次启动会从被它替代的插件导入一次：`dsh-codex-pins.v1` 的 `pinned`、`dsh-workspace-menu:v1` 的 `pinnedSessions` / `unreadSessions` / `pinnedWorkspaces`；导入成功（自己的键写成功）后就把这两个键删掉——那两个插件已卸载，它们的数据是死数据。写失败时保留原键，不会毁掉最后一份。
+- 会话或工作区被删除后，对应的 id 会在下一次渲染时清掉。
+- 只有「删除工作区（含磁盘）」需要 host；其余全部在浏览器内完成，host 路由不联网、不读会话日志。
+
+## 已知边界
+
+- 置顶栏的行是本插件渲染的，**其它插件**基于官方行 fiber 的行级 UI 不会出现在这些行上（这是任何"自造行"方案的固有限制）。
+- 「删除会话（含磁盘记录）」没有做：原社区实现是调第三方插件 `@mlgbnb/dsh-archive-manager` 的路由，而这个插件本机从未安装（那条菜单项一直是坏的）。自己实现等于直接改写会话持久化记录，比删目录更容易损坏会话库，暂不做。工作区级的删除会归档其会话，不会抹掉会话日志。
+- 侧栏 DOM 操作依赖原生 `role="tree"` / `role="treeitem"`、`sessionRow` / `groupSection` / `rowActions` / `title` 这些 class 子串，以及行的 React fiber 形状（`props.node.{id,updatedAt,blank}` 或 `props.group.workspaceId`）。解析顺序是：本插件写的 `data-dsh-pins-id` → fiber → 唯一标题匹配；三步都失败时该行不注入任何东西（不会误伤）。
+
+## 开发
+
+```sh
+node test/sidebar.test.mjs   # 客户端：jsdom + 假侧栏，73 项断言
+node test/host.test.mjs      # host：假 ctx + 真实临时目录，20 项断言
+```
+
+客户端测试覆盖：两栏构建、行的 id 归属、从官方行点 📌 置顶（含闭包回归）、置顶行渲染与官方行隐藏、置顶行上的完整菜单、未读标记落到两种行、归档调用服务、取消置顶后恢复、React 重建行后自愈、调用官方 open-in-app 路由、接管原生 ⋯（含 ＋ 不误伤）、图钉与 ⋯ 的字形/尺寸对齐原生、置顶不弹提示（失败才提示）、删除工作区的名称校验与请求体、旧插件名单导入、dispose 后 DOM 还原。
+
+host 测试覆盖：路由契约与 inject、route lease 去重、围栏拒绝、方法/请求体校验、未知工作区、名称不匹配、`$HOME`/根/祖先路径拒绝、正常删除（真删临时目录 + 会话归档 + 注销）、陈旧注册。
+
+本地装进 desktop profile（源码改动即生效）：
+
+```sh
+pnpm add link:<本仓库路径>          # pnpm 会把 node_modules/dsh-sidebar-pins 软链到源码
+# 并把 "dsh-sidebar-pins" 追加到 package.json 的 dsh.profile.bundles，然后重启 DSH Desktop
+```
+
+## License
+
+MIT

@@ -33,6 +33,24 @@ const MAX_BODY_BYTES = 8 * 1024
  */
 const routeLeases = new WeakMap()
 
+/**
+ * Filesystem seams. Destructive behaviour is reachable only through this
+ * object so a test can substitute a spy and prove that a refusal happened
+ * *before* any removal — a test must never drive the real remover with a path
+ * it does not own. (This plugin shipped a test that did exactly that and
+ * deleted a developer's working tree; the seam exists so it cannot recur.)
+ */
+export const internals = {
+  remove: (target) => rm(target, { recursive: true, force: true }),
+  isDirectory: async (target) => {
+    try {
+      return (await stat(target)).isDirectory()
+    } catch {
+      return false
+    }
+  },
+}
+
 function sendJson(res, status, payload) {
   res.statusCode = status
   res.setHeader('content-type', 'application/json; charset=utf-8')
@@ -85,12 +103,17 @@ function isForbiddenPath(target) {
   return false
 }
 
-async function isDirectory(target) {
-  try {
-    return (await stat(target)).isDirectory()
-  } catch {
-    return false
-  }
+/**
+ * A target that *contains* another registered workspace is refused even when it
+ * looks like a legitimate workspace itself: deleting `~/works` also destroys
+ * `~/works/repo/vino`, which the user registered separately.
+ */
+function containsAnotherWorkspace(target, workspaces, selfId) {
+  return workspaces.some((entry) => {
+    if (entry === undefined || entry.id === selfId || typeof entry.path !== 'string') return false
+    const other = normalize(entry.path)
+    return other !== target && other.startsWith(target + sep)
+  })
 }
 
 export function apply(ctx) {
@@ -159,11 +182,15 @@ function handleDeleteWorkspace(ctx) {
       sendJson(res, 400, { ok: false, code: 'forbidden-path', message: 'refusing to delete a system or home directory' })
       return
     }
+    if (containsAnotherWorkspace(target, ctx.workspaceRegistry.list(), workspace.id)) {
+      sendJson(res, 400, { ok: false, code: 'contains-workspace', message: 'refusing to delete a directory that contains another workspace' })
+      return
+    }
 
-    const existed = await isDirectory(target)
+    const existed = await internals.isDirectory(target)
     if (existed) {
       try {
-        await rm(target, { recursive: true, force: true })
+        await internals.remove(target)
       } catch (error) {
         sendJson(res, 500, {
           ok: false,

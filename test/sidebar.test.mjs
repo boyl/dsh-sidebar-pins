@@ -122,6 +122,19 @@ function makeContext() {
   return { ctx, calls, disposers, list }
 }
 
+/** Label text of every menu item in a scope (icons and hints are separate spans). */
+function labelsOf(scope) {
+  return Array.from(scope.querySelectorAll('.dsh-pins-menu-label')).map((n) => n.textContent)
+}
+
+/** Find the menu button whose label span reads exactly `text`. */
+function itemByLabel(scope, text) {
+  return Array.from(scope.querySelectorAll('.dsh-pins-menu-item')).find((b) => {
+    const label = b.querySelector('.dsh-pins-menu-label')
+    return label !== null && label.textContent === text
+  })
+}
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function main() {
@@ -196,9 +209,10 @@ async function main() {
   nativeTrigger.querySelector('svg').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
   await sleep(20)
   const claimedMenu = doc.querySelector('.dsh-pins-menu')
-  const claimedLabels = claimedMenu ? Array.from(claimedMenu.querySelectorAll('.dsh-pins-menu-item')).map((b) => b.textContent) : []
+  const claimedLabels = claimedMenu ? labelsOf(claimedMenu) : []
   check('clicking the stock ⋯ opens our menu', claimedMenu !== null)
-  check('the claimed menu is the full feature set', claimedLabels[0] === '置顶' && claimedLabels.length === 9, JSON.stringify(claimedLabels))
+  const codexOrder = ['重命名', '置顶', '标记为未读', '归档', '复制', '分叉', '在新窗口中打开', '在 Finder 中打开']
+  check('the claimed menu is the full feature set in Codex order', JSON.stringify(claimedLabels) === JSON.stringify(codexOrder), JSON.stringify(claimedLabels))
   check('the stock handler never runs for a claimed trigger', stockHandlerRuns === 0, stockHandlerRuns)
   doc.dispatchEvent(new dom.window.MouseEvent('mousedown', { bubbles: true, cancelable: true }))
 
@@ -233,12 +247,12 @@ async function main() {
   await sleep(20)
   const menu = doc.querySelector('.dsh-pins-menu')
   check('right-click on a pinned row opens our menu', menu !== null)
-  const labels = menu ? Array.from(menu.querySelectorAll('.dsh-pins-menu-item')).map((b) => b.textContent) : []
-  const expected = ['取消置顶', '重命名', '标记为未读', '归档会话', '分叉会话', '复制会话链接', '复制会话标题', '在新窗口中打开', '在 Finder 中打开']
-  check('menu carries the full session feature set', JSON.stringify(labels) === JSON.stringify(expected), JSON.stringify(labels))
+  const labels = menu ? labelsOf(menu) : []
+  const expected = ['重命名', '取消置顶', '标记为未读', '归档', '复制', '分叉', '在新窗口中打开', '在 Finder 中打开']
+  check('menu carries the full session feature set in Codex order', JSON.stringify(labels) === JSON.stringify(expected), JSON.stringify(labels))
 
   section('menu actions')
-  const unreadItem = Array.from(menu.querySelectorAll('.dsh-pins-menu-item')).find((b) => b.textContent === '标记为未读')
+  const unreadItem = itemByLabel(menu, '标记为未读')
   unreadItem.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
   await sleep(60)
   check('unread state lands on the pinned row', pinnedRow.getAttribute('data-dsh-pins-unread') === '1', pinnedRow.getAttribute('data-dsh-pins-unread'))
@@ -247,7 +261,7 @@ async function main() {
   pinnedRow.dispatchEvent(new dom.window.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 40, clientY: 40 }))
   await sleep(20)
   const reopen = doc.querySelector('.dsh-pins-menu')
-  const archiveItem = Array.from(reopen.querySelectorAll('.dsh-pins-menu-item')).find((b) => b.textContent === '归档会话')
+  const archiveItem = itemByLabel(reopen, '归档')
   archiveItem.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
   await sleep(20)
   check('归档 calls the workspace service', JSON.stringify(calls).includes('["archive","session-B"]'), JSON.stringify(calls))
@@ -256,7 +270,7 @@ async function main() {
   pinnedRow.dispatchEvent(new dom.window.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 40, clientY: 40 }))
   await sleep(20)
   const menu2 = doc.querySelector('.dsh-pins-menu')
-  const unpin = Array.from(menu2.querySelectorAll('.dsh-pins-menu-item')).find((b) => b.textContent === '取消置顶')
+  const unpin = itemByLabel(menu2, '取消置顶')
   unpin.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
   await sleep(60)
   check('pinned pane is empty again', pinnedPane.querySelectorAll('.dsh-pins-row').length === 0)
@@ -290,7 +304,7 @@ async function main() {
   rowA.dispatchEvent(new dom.window.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 30, clientY: 30 }))
   await sleep(20)
   const revealMenu = doc.querySelector('.dsh-pins-menu')
-  const revealItem = Array.from(revealMenu.querySelectorAll('.dsh-pins-menu-item')).find((b) => b.textContent === '在 Finder 中打开')
+  const revealItem = itemByLabel(revealMenu, '在 Finder 中打开')
   check('the session menu offers a file-manager item (macOS label)', revealItem !== undefined)
   check('the file-manager item is enabled when the session has a cwd', revealItem && revealItem.disabled === false)
   revealItem.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
@@ -304,9 +318,9 @@ async function main() {
   wsRow.dispatchEvent(new dom.window.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 20, clientY: 20 }))
   await sleep(20)
   const wsMenu = doc.querySelector('.dsh-pins-menu')
-  const wsLabels = Array.from(wsMenu.querySelectorAll('.dsh-pins-menu-item')).map((b) => b.textContent)
+  const wsLabels = labelsOf(wsMenu)
   check('the workspace menu offers the destructive item', wsLabels.indexOf('删除工作区（含磁盘）') !== -1, JSON.stringify(wsLabels))
-  const deleteItem = Array.from(wsMenu.querySelectorAll('.dsh-pins-menu-item')).find((b) => b.textContent === '删除工作区（含磁盘）')
+  const deleteItem = itemByLabel(wsMenu, '删除工作区（含磁盘）')
   deleteItem.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
   await sleep(20)
   const modal = doc.querySelector('.dsh-pins-modal')
@@ -322,7 +336,7 @@ async function main() {
 
   wsRow.dispatchEvent(new dom.window.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 20, clientY: 20 }))
   await sleep(20)
-  const deleteItem2 = Array.from(doc.querySelector('.dsh-pins-menu').querySelectorAll('.dsh-pins-menu-item')).find((b) => b.textContent === '删除工作区（含磁盘）')
+  const deleteItem2 = itemByLabel(doc.querySelector('.dsh-pins-menu'), '删除工作区（含磁盘）')
   deleteItem2.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
   await sleep(20)
   const modal2 = doc.querySelector('.dsh-pins-modal')
@@ -351,11 +365,69 @@ async function main() {
   const wsRowForPin = doc.querySelector('[class*="groupRow"]')
   wsRowForPin.dispatchEvent(new dom.window.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 20, clientY: 20 }))
   await sleep(20)
-  const wsPinItem = Array.from(doc.querySelector('.dsh-pins-menu').querySelectorAll('.dsh-pins-menu-item')).find((b) => b.textContent === '置顶')
+  const wsPinItem = itemByLabel(doc.querySelector('.dsh-pins-menu'), '置顶')
   wsPinItem.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
   await sleep(40)
   check('pinning a workspace shows no toast', doc.querySelector('.dsh-pins-toast') === null)
   check('pinning a workspace still marks its row', wsRowForPin.getAttribute('data-dsh-pins-ws-pinned') === '1', wsRowForPin.getAttribute('data-dsh-pins-ws-pinned'))
+
+  section('menu structure: icons, hints, submenus')
+  rowA.dispatchEvent(new dom.window.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 30, clientY: 30 }))
+  await sleep(20)
+  const structured = doc.querySelector('.dsh-pins-menu')
+  const topItems = Array.from(structured.querySelectorAll(':scope > .dsh-pins-menu-item'))
+  check('every top-level item carries an icon', topItems.every((b) => b.querySelector('.dsh-pins-menu-icon svg') !== null))
+  const hintOf = (text) => { const b = itemByLabel(structured, text); const s = b && b.querySelector('.dsh-pins-menu-shortcut'); return s ? s.textContent : '' }
+  check('rename shows the macOS hint ⌥⌘R', hintOf('重命名') === '⌥⌘R', hintOf('重命名'))
+  check('pin shows ⌥⌘P', hintOf('置顶') === '⌥⌘P', hintOf('置顶'))
+  check('unread shows ⇧⌘U', hintOf('标记为未读') === '⇧⌘U', hintOf('标记为未读'))
+  check('archive shows ⇧⌘A', hintOf('归档') === '⇧⌘A', hintOf('归档'))
+  const copyParent = itemByLabel(structured, '复制')
+  const forkParent = itemByLabel(structured, '分叉')
+  check('copy is a parent row with a chevron', copyParent.querySelector('.dsh-pins-menu-chevron') !== null)
+  copyParent.dispatchEvent(new dom.window.MouseEvent('mouseenter'))
+  await sleep(20)
+  check('hovering copy opens its submenu', labelsOf(copyParent.querySelector('.dsh-pins-menu')).join('|') === '复制会话链接|复制会话标题|复制会话 ID', labelsOf(copyParent.querySelector('.dsh-pins-menu')).join('|'))
+  forkParent.dispatchEvent(new dom.window.MouseEvent('mouseenter'))
+  await sleep(20)
+  check('opening another submenu closes the first', copyParent.querySelector('.dsh-pins-menu') === null)
+  check('the fork submenu offers both variants', labelsOf(forkParent.querySelector('.dsh-pins-menu')).join('|') === '分叉会话（标题加序号）|分叉会话（保持标题）', labelsOf(forkParent.querySelector('.dsh-pins-menu')).join('|'))
+  check('a parent row never fires an action itself', structured.querySelectorAll('.dsh-pins-toast').length === 0)
+  doc.dispatchEvent(new dom.window.MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+
+  section('keyboard shortcuts (bound to the current session)')
+  const shortcut = (key, mods) => new dom.window.KeyboardEvent('keydown', Object.assign({ key, bubbles: true, cancelable: true }, mods))
+  rowA.dispatchEvent(shortcut('p', { metaKey: true, altKey: true }))
+  await sleep(40)
+  check('⌥⌘P pins the current session', pinnedPane.querySelectorAll('.dsh-pins-row[data-dsh-pins-id="session:session-A"]').length === 1)
+  check('⌥⌘P stays silent', doc.querySelector('.dsh-pins-toast') === null)
+  rowA.dispatchEvent(shortcut('p', { metaKey: true, altKey: true }))
+  await sleep(40)
+  check('⌥⌘P toggles back off', pinnedPane.querySelectorAll('.dsh-pins-row[data-dsh-pins-id="session:session-A"]').length === 0)
+  rowA.dispatchEvent(shortcut('u', { metaKey: true, shiftKey: true }))
+  await sleep(40)
+  check('⇧⌘U marks the current session unread', rowA.getAttribute('data-dsh-pins-unread') === '1')
+  rowA.dispatchEvent(shortcut('u', { metaKey: true, shiftKey: true }))
+  await sleep(40)
+  rowA.dispatchEvent(shortcut('r', { metaKey: true, altKey: true }))
+  await sleep(40)
+  check('⌥⌘R opens the rename dialog', doc.querySelector('.dsh-pins-modal') !== null)
+  doc.querySelector('.dsh-pins-modal input').value = '新名字'
+  doc.querySelector('.dsh-pins-modal-ok').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }))
+  await sleep(40)
+  const archivesBefore = calls.filter((c) => c[0] === 'archive').length
+  rowA.dispatchEvent(shortcut('a', { metaKey: true, shiftKey: true }))
+  await sleep(40)
+  check('⇧⌘A archives the current session', calls.filter((c) => c[0] === 'archive').length === archivesBefore + 1)
+  const typing = doc.createElement('input')
+  doc.body.appendChild(typing)
+  const pinnedBefore = pinnedPane.querySelectorAll('.dsh-pins-row').length
+  typing.dispatchEvent(shortcut('p', { metaKey: true, altKey: true }))
+  await sleep(30)
+  check('shortcuts stay quiet while typing in an input',
+    pinnedPane.querySelectorAll('.dsh-pins-row').length === pinnedBefore
+      && pinnedPane.querySelectorAll('.dsh-pins-row[data-dsh-pins-id="session:session-A"]').length === 0)
+  typing.remove()
 
   section('dispose')
   while (disposers.length > 0) disposers.pop()()
@@ -385,7 +457,7 @@ async function main() {
   check('workspace-menu pins are imported too', imported.pinned.indexOf('session-B') !== -1, JSON.stringify(imported))
   check('unread marks are imported', imported.unread.indexOf('session-A') !== -1, JSON.stringify(imported))
   check('imported pins render in the pinned pane', doc2.querySelectorAll('.dsh-pins-row').length === 2, doc2.querySelectorAll('.dsh-pins-row').length)
-  check('the replaced plugins\u2019 keys are cleaned up', dom2.window.localStorage.getItem('dsh-codex-pins.v1') === null && dom2.window.localStorage.getItem('dsh-workspace-menu:v1') === null)
+  check('the replaced plugins’ keys are cleaned up', dom2.window.localStorage.getItem('dsh-codex-pins.v1') === null && dom2.window.localStorage.getItem('dsh-workspace-menu:v1') === null)
   check('our own key survived that cleanup', dom2.window.localStorage.getItem('dsh-sidebar-pins.v1') !== null)
   while (second.disposers.length > 0) second.disposers.pop()()
 

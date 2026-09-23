@@ -53,6 +53,63 @@ window.__ModuleLoader__.load({
       '<path d="M13.7486 8.00001C13.7486 8.63513 13.2338 9.15001 12.5986 9.15001C11.9635 9.15001 11.4486 8.63513 11.4486 8.00001C11.4486 7.36488 11.9635 6.85001 12.5986 6.85001C13.2338 6.85001 13.7486 7.36488 13.7486 8.00001Z" fill="currentColor"/>' +
       '</svg>'
 
+    /**
+     * Menu glyphs. Material Icons paths (24x24, currentColor) — the same family
+     * as the push_pin glyph, so the menu reads like the one Codex draws:
+     * icon + label + right-aligned shortcut, chevron for a submenu.
+     */
+    function menuIcon(path) {
+      return '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="' + path + '"/></svg>'
+    }
+
+    var ICON = {
+      rename: menuIcon('M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.9959.9959 0 0 0 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'),
+      pin: menuIcon('M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z'),
+      unread: menuIcon('M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z'),
+      read: menuIcon('M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z'),
+      archive: menuIcon('M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z'),
+      copy: menuIcon('M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z'),
+      fork: menuIcon('M14 4l2.29 2.29-2.88 2.88 1.42 1.42 2.88-2.88L20 10V4h-6zm-4 0H4v6l2.29-2.29 4.71 4.71V20h2v-8.41l-5.29-5.3L10 4z'),
+      window: menuIcon('M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z'),
+      folder: menuIcon('M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z'),
+      add: menuIcon('M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'),
+      remove: menuIcon('M7 11v2h10v-2H7zm5-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'),
+      trash: menuIcon('M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'),
+    }
+
+    /* Shortcuts: bound for the session the window currently shows, shown as
+     * hints in the menu — the same pair Codex offers (⌥⌘P / ⌥⌘R / ⇧⌘U / ⇧⌘A
+     * on macOS, Ctrl+Alt / Ctrl+Shift elsewhere). */
+    var SHORTCUTS = {
+      pin: { key: 'p', alt: true, meta: true },
+      rename: { key: 'r', alt: true, meta: true },
+      unread: { key: 'u', shift: true, meta: true },
+      archive: { key: 'a', shift: true, meta: true },
+    }
+
+    function isMacPlatform() {
+      var hint = String((navigator && navigator.userAgent) || '') + ' ' + String((navigator && navigator.platform) || '')
+      return /mac|darwin|iphone|ipad/i.test(hint)
+    }
+
+    function shortcutHint(name) {
+      var spec = SHORTCUTS[name]
+      if (!spec) return ''
+      if (isMacPlatform()) {
+        return (spec.alt ? '⌥' : '') + (spec.shift ? '⇧' : '') + (spec.meta ? '⌘' : '') + spec.key.toUpperCase()
+      }
+      return (spec.meta ? 'Ctrl+' : '') + (spec.alt ? 'Alt+' : '') + (spec.shift ? 'Shift+' : '') + spec.key.toUpperCase()
+    }
+
+    function matchesShortcut(event, name) {
+      var spec = SHORTCUTS[name]
+      if (!spec || String(event.key).toLowerCase() !== spec.key) return false
+      var primary = isMacPlatform() ? event.metaKey : event.ctrlKey
+      var other = isMacPlatform() ? event.ctrlKey : event.metaKey
+      if (other) return false
+      return primary === spec.meta && event.altKey === (spec.alt === true) && event.shiftKey === (spec.shift === true)
+    }
+
     var STYLE_TEXT = [
       '[' + SPLIT_ATTR + ']{flex:1;min-height:0;display:flex;flex-direction:column;}',
       '[' + SPLIT_ATTR + '] [' + TREE_ATTR + ']{flex:none!important;overflow:visible!important;min-height:0!important;height:auto!important;}',
@@ -84,10 +141,16 @@ window.__ModuleLoader__.load({
       'background:color-mix(in srgb, var(--dsw-alias-bg-layer-3,#1e1e24) 88%, transparent);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);',
       'border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.28);',
       'font:13px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--dsw-alias-label-primary,#e6edf3);user-select:none;}',
-      '.' + MENU_CLASS + '-item{display:block;width:100%;box-sizing:border-box;text-align:left;padding:5px 9px;border:none;border-radius:6px;background:transparent;color:inherit;font:inherit;cursor:pointer;white-space:nowrap;}',
-      '.' + MENU_CLASS + '-item:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover,rgba(140,149,159,.14));}',
+      '.' + MENU_CLASS + '-item{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;text-align:left;padding:5px 9px;border:none;border-radius:6px;background:transparent;color:inherit;font:inherit;cursor:pointer;white-space:nowrap;}',
+      '.' + MENU_CLASS + '-item:hover:not(:disabled),.' + MENU_CLASS + '-item.is-open{background:var(--dsw-alias-interactive-bg-hover,rgba(140,149,159,.14));}',
       '.' + MENU_CLASS + '-item:disabled{opacity:.45;cursor:default;}',
       '.' + MENU_CLASS + '-item-danger{color:var(--dsw-alias-danger,#f26d6d);}',
+      '.' + MENU_CLASS + '-icon{flex:none;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;color:var(--dsw-alias-label-secondary,#8b949e);}',
+      '.' + MENU_CLASS + '-item:hover .' + MENU_CLASS + '-icon,.' + MENU_CLASS + '-item.is-open .' + MENU_CLASS + '-icon{color:inherit;}',
+      '.' + MENU_CLASS + '-item-danger .' + MENU_CLASS + '-icon{color:inherit;}',
+      '.' + MENU_CLASS + '-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}',
+      '.' + MENU_CLASS + '-shortcut{flex:none;margin-left:14px;color:var(--dsw-alias-label-tertiary,#8b949e);font-size:11px;letter-spacing:.04em;}',
+      '.' + MENU_CLASS + '-chevron{flex:none;margin-left:6px;color:var(--dsw-alias-label-tertiary,#8b949e);font-size:13px;line-height:1;}',
       '.' + MENU_CLASS + '-sep{height:1px;margin:4px 6px;background:var(--dsw-alias-divider,rgba(140,149,159,.18));}',
       '.' + TOAST_CLASS + '{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:2147483001;padding:8px 14px;',
       'background:var(--dsw-alias-bg-layer-3,#1e1e24);border:1px solid var(--dsw-alias-border-strong,#3a3a44);border-radius:8px;',
@@ -358,25 +421,120 @@ window.__ModuleLoader__.load({
 
     /* ----------------------------------------------------------------- menu */
 
-    function addMenuItem(menu, item, close) {
-      if (item.separator) {
-        var sep = document.createElement('div')
-        sep.className = MENU_CLASS + '-sep'
-        menu.appendChild(sep)
-        return
-      }
+    function menuSeparator() {
+      var sep = document.createElement('div')
+      sep.className = MENU_CLASS + '-sep'
+      return sep
+    }
+
+    /** icon + label + optional right-aligned shortcut / chevron. */
+    function menuButton(item) {
       var button = document.createElement('button')
       button.type = 'button'
-      button.className = MENU_CLASS + '-item' + (item.danger ? ' ' + MENU_CLASS + '-item-danger' : '')
-      button.textContent = item.label
+      button.className = MENU_CLASS + '-item'
+        + (item.danger ? ' ' + MENU_CLASS + '-item-danger' : '')
+        + (item.items ? ' ' + MENU_CLASS + '-item-parent' : '')
       button.disabled = item.disabled === true
       button.setAttribute('role', 'menuitem')
+      if (item.icon) {
+        var icon = document.createElement('span')
+        icon.className = MENU_CLASS + '-icon'
+        icon.innerHTML = item.icon
+        button.appendChild(icon)
+      }
+      var label = document.createElement('span')
+      label.className = MENU_CLASS + '-label'
+      label.textContent = item.label
+      button.appendChild(label)
+      if (item.shortcut) {
+        var hint = document.createElement('span')
+        hint.className = MENU_CLASS + '-shortcut'
+        hint.textContent = item.shortcut
+        button.appendChild(hint)
+      }
+      if (item.items) {
+        var chevron = document.createElement('span')
+        chevron.className = MENU_CLASS + '-chevron'
+        chevron.textContent = '›'
+        button.appendChild(chevron)
+      }
+      return button
+    }
+
+    /** Place a fixed-position menu inside the viewport, clamped to the edges. */
+    function placeMenu(menu, x, y) {
+      var rect = menu.getBoundingClientRect()
+      var margin = 8
+      var left = Math.min(Math.max(margin, x), Math.max(margin, window.innerWidth - rect.width - margin))
+      var top = Math.min(Math.max(margin, y), Math.max(margin, window.innerHeight - rect.height - margin))
+      menu.style.left = left + 'px'
+      menu.style.top = top + 'px'
+    }
+
+    /**
+     * Append one item. A parent item owns its child menu in the DOM — the child
+     * is position:fixed so layout is untouched, the pointer stays "inside" the
+     * parent while the submenu is open, and `removeMenus()` brings the whole
+     * tree down in one pass. Per-item state lives in this call frame, never in
+     * the loop that calls it.
+     */
+    function appendMenuItem(menu, item, close) {
+      if (item.separator) {
+        menu.appendChild(menuSeparator())
+        return
+      }
+      var button = menuButton(item)
+      if (item.items && item.disabled !== true) {
+        var dropChild = function () {
+          var child = button.querySelector('.' + MENU_CLASS)
+          if (child) child.remove()
+          button.classList.remove('is-open')
+        }
+        var openChild = function () {
+          var open = menu.querySelectorAll('.' + MENU_CLASS + '-item.is-open')
+          for (var s = 0; s < open.length; s++) if (open[s] !== button) {
+            var stale = open[s].querySelector('.' + MENU_CLASS)
+            if (stale) stale.remove()
+            open[s].classList.remove('is-open')
+          }
+          if (button.classList.contains('is-open')) return
+          button.classList.add('is-open')
+          var child = buildMenu(item.items, close)
+          button.appendChild(child)
+          var rect = button.getBoundingClientRect()
+          var width = child.getBoundingClientRect().width
+          var x = rect.right + 4
+          if (width > 0 && x + width > window.innerWidth - 8) x = Math.max(8, rect.left - width - 4)
+          placeMenu(child, x, Math.max(8, rect.top - 6))
+        }
+        button.addEventListener('mouseenter', openChild)
+        button.addEventListener('click', function (event) {
+          event.stopPropagation()
+          if (button.classList.contains('is-open')) dropChild()
+          else openChild()
+        })
+        button.addEventListener('mouseleave', function (event) {
+          var to = event.relatedTarget
+          if (to instanceof Node && button.contains(to)) return
+          dropChild()
+        })
+        menu.appendChild(button)
+        return
+      }
       button.addEventListener('click', function (event) {
         event.stopPropagation()
         close()
         item.onClick()
       })
       menu.appendChild(button)
+    }
+
+    function buildMenu(items, close) {
+      var menu = document.createElement('div')
+      menu.className = MENU_CLASS
+      menu.setAttribute('role', 'menu')
+      for (var i = 0; i < items.length; i++) appendMenuItem(menu, items[i], close)
+      return menu
     }
 
     function removeMenus() {
@@ -388,9 +546,6 @@ window.__ModuleLoader__.load({
 
     function showMenu(x, y, items) {
       removeMenus()
-      var menu = document.createElement('div')
-      menu.className = MENU_CLASS
-      menu.setAttribute('role', 'menu')
       var cleanup = function () {
         document.removeEventListener('mousedown', onMouseDown, true)
         document.removeEventListener('keydown', onKey, true)
@@ -402,21 +557,17 @@ window.__ModuleLoader__.load({
         cleanup()
       }
       var onMouseDown = function (event) {
-        if (event.target instanceof Node && menu.contains(event.target)) return
+        var menu = document.querySelector('.' + MENU_CLASS)
+        if (menu && event.target instanceof Node && menu.contains(event.target)) return
         close()
       }
       var onKey = function (event) {
         if (event.key === 'Escape') close()
       }
       var onMove = function () { close() }
-      for (var i = 0; i < items.length; i++) addMenuItem(menu, items[i], close)
+      var menu = buildMenu(items, close)
       document.body.appendChild(menu)
-      var rect = menu.getBoundingClientRect()
-      var margin = 8
-      var left = Math.min(Math.max(margin, x), Math.max(margin, window.innerWidth - rect.width - margin))
-      var top = Math.min(Math.max(margin, y), Math.max(margin, window.innerHeight - rect.height - margin))
-      menu.style.left = left + 'px'
-      menu.style.top = top + 'px'
+      placeMenu(menu, x, y)
       document.addEventListener('mousedown', onMouseDown, true)
       document.addEventListener('keydown', onKey, true)
       window.addEventListener('blur', onMove)
@@ -731,6 +882,18 @@ window.__ModuleLoader__.load({
       })
     }
 
+    function archiveSession(ctx, id) {
+      Promise.resolve(ctx.workspaces.archiveSession(id))
+        .then(function () { toast('已归档') })
+        .catch(function (error) { failure('归档失败', error) })
+    }
+
+    function forkSession(ctx, id, increaseTitle) {
+      Promise.resolve(ctx.sessions.fork({ sessionId: id, increaseTitle: increaseTitle === true }))
+        .then(function (childId) { if (childId) ctx.sessions.open(childId) })
+        .catch(function (error) { failure('分叉失败', error) })
+    }
+
     function sessionItems(ctx, store, list, id) {
       var pinned = store.isPinned(id)
       var unread = store.isUnread(id)
@@ -738,60 +901,41 @@ window.__ModuleLoader__.load({
       var summary = list && list.byId ? list.byId[id] : undefined
       var cwd = summary && summary.cwd
       var reveal = fileManager()
+      // Codex order: rename, pin, unread, archive | copy, fork | window, reveal.
       return [
-        {
-          label: pinned ? '取消置顶' : '置顶',
-          // Pin state is legible from the row itself (blue pin, pane move,
-          // count), so it needs no toast the way a failure does.
-          onClick: function () { store.togglePin(id) },
-        },
-        { label: '重命名', onClick: function () { renameSession(ctx, id, title) } },
+        { label: '重命名', icon: ICON.rename, shortcut: shortcutHint('rename'), onClick: function () { renameSession(ctx, id, title) } },
+        { label: pinned ? '取消置顶' : '置顶', icon: ICON.pin, shortcut: shortcutHint('pin'), onClick: function () { store.togglePin(id) } },
         {
           label: unread ? '标记为已读' : '标记为未读',
+          icon: unread ? ICON.read : ICON.unread,
+          shortcut: shortcutHint('unread'),
           onClick: function () {
             var now = store.toggleUnread(id)
             toast(now ? '已标记为未读' : '已标记为已读')
           },
         },
+        { label: '归档', icon: ICON.archive, shortcut: shortcutHint('archive'), onClick: function () { archiveSession(ctx, id) } },
         { separator: true },
         {
-          label: '归档会话',
-          onClick: function () {
-            Promise.resolve(ctx.workspaces.archiveSession(id))
-              .then(function () { toast('已归档') })
-              .catch(function (error) { failure('归档失败', error) })
-          },
+          label: '复制',
+          icon: ICON.copy,
+          items: [
+            { label: '复制会话链接', onClick: function () { copyText(deepLink(id)).then(function (ok) { toast(ok ? '链接已复制' : '复制失败') }) } },
+            { label: '复制会话标题', onClick: function () { copyText(title).then(function (ok) { toast(ok ? '标题已复制' : '复制失败') }) } },
+            { label: '复制会话 ID', onClick: function () { copyText(id).then(function (ok) { toast(ok ? 'ID 已复制' : '复制失败') }) } },
+          ],
         },
         {
-          label: '分叉会话',
-          onClick: function () {
-            Promise.resolve(ctx.sessions.fork({ sessionId: id, increaseTitle: true }))
-              .then(function (childId) { if (childId) ctx.sessions.open(childId) })
-              .catch(function (error) { failure('分叉失败', error) })
-          },
+          label: '分叉',
+          icon: ICON.fork,
+          items: [
+            { label: '分叉会话（标题加序号）', onClick: function () { forkSession(ctx, id, true) } },
+            { label: '分叉会话（保持标题）', onClick: function () { forkSession(ctx, id, false) } },
+          ],
         },
         { separator: true },
-        {
-          label: '复制会话链接',
-          onClick: function () {
-            copyText(deepLink(id)).then(function (ok) { toast(ok ? '链接已复制' : '复制失败') })
-          },
-        },
-        {
-          label: '复制会话标题',
-          onClick: function () {
-            copyText(title).then(function (ok) { toast(ok ? '标题已复制' : '复制失败') })
-          },
-        },
-        {
-          label: '在新窗口中打开',
-          onClick: function () { window.open(deepLink(id), '_blank') },
-        },
-        {
-          label: reveal.label,
-          disabled: !cwd,
-          onClick: function () { revealInFileManager(cwd) },
-        },
+        { label: '在新窗口中打开', icon: ICON.window, onClick: function () { window.open(deepLink(id), '_blank') } },
+        { label: reveal.label, icon: ICON.folder, disabled: !cwd, onClick: function () { revealInFileManager(cwd) } },
       ]
     }
 
@@ -811,6 +955,7 @@ window.__ModuleLoader__.load({
       return [
         {
           label: pinned ? '取消置顶' : '置顶',
+          icon: ICON.pin,
           // Only failures speak: a successful pin shows in the row's accent bar
           // and in the workspace order, and unpinning keeps the current order.
           onClick: function () {
@@ -826,6 +971,7 @@ window.__ModuleLoader__.load({
         },
         {
           label: '重命名',
+          icon: ICON.rename,
           onClick: function () {
             promptText('重命名工作区', (ws && ws.title) || '').then(function (next) {
               if (!next) return
@@ -837,6 +983,7 @@ window.__ModuleLoader__.load({
         },
         {
           label: '新建会话',
+          icon: ICON.add,
           onClick: function () {
             try {
               ctx.workspaces.startSession(wsId)
@@ -847,6 +994,7 @@ window.__ModuleLoader__.load({
         },
         {
           label: '复制路径',
+          icon: ICON.copy,
           disabled: !ws || !ws.path,
           onClick: function () {
             if (!ws || !ws.path) return
@@ -855,12 +1003,14 @@ window.__ModuleLoader__.load({
         },
         {
           label: reveal.label,
+          icon: ICON.folder,
           disabled: !ws || !ws.path,
           onClick: function () { if (ws && ws.path) revealInFileManager(ws.path) },
         },
         { separator: true },
         {
           label: '从工作区列表中移除（保留磁盘）',
+          icon: ICON.remove,
           danger: true,
           onClick: function () {
             if (!window.confirm('确定从工作区列表中移除该工作区吗？\n目录和会话记录会保留在磁盘上。')) return
@@ -871,6 +1021,7 @@ window.__ModuleLoader__.load({
         },
         {
           label: '删除工作区（含磁盘）',
+          icon: ICON.trash,
           danger: true,
           onClick: function () { deleteWorkspaceWithDisk(ctx, wsId, ws) },
         },
@@ -1074,6 +1225,32 @@ window.__ModuleLoader__.load({
         else raf = window.setTimeout(render, 0)
       }
 
+      var onShortcut = function (event) {
+        var target = event.target
+        if (target instanceof Element && target.closest && target.closest('input, textarea, select, [contenteditable="true"]')) return
+        var list = ctx.sessions.list.getSnapshot()
+        var id = list.current
+        if (id === undefined) return
+        if (matchesShortcut(event, 'pin')) {
+          event.preventDefault()
+          store.togglePin(id)
+          return
+        }
+        if (matchesShortcut(event, 'rename')) {
+          event.preventDefault()
+          renameSession(ctx, id, sessionTitle(list, id))
+          return
+        }
+        if (matchesShortcut(event, 'unread')) {
+          event.preventDefault()
+          store.toggleUnread(id)
+          return
+        }
+        if (matchesShortcut(event, 'archive')) {
+          event.preventDefault()
+          archiveSession(ctx, id)
+        }
+      }
       var rowInfoOf = function (event) {
         var target = event.target instanceof Element ? event.target : null
         var row = target && target.closest ? target.closest('[role="treeitem"]') : null
@@ -1121,6 +1298,7 @@ window.__ModuleLoader__.load({
         if (info && info.kind === 'session') store.markRead(info.id)
       }
 
+      document.addEventListener('keydown', onShortcut, true)
       document.addEventListener('contextmenu', onContextMenu, true)
       document.addEventListener('dblclick', onDoubleClick, true)
       document.addEventListener('click', onClick, true)
@@ -1133,6 +1311,7 @@ window.__ModuleLoader__.load({
       schedule()
 
       return function () {
+        document.removeEventListener('keydown', onShortcut, true)
         document.removeEventListener('contextmenu', onContextMenu, true)
         document.removeEventListener('dblclick', onDoubleClick, true)
         document.removeEventListener('click', onClick, true)

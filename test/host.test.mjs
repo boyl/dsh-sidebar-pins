@@ -4,11 +4,30 @@
 // requests against a fake registry, and checks every guard before the happy
 // path actually removes a real temporary directory.
 //
+// SAFETY: this file drives a route that deletes directories. Two rails apply,
+// because an earlier revision of this test pointed the handler at the
+// developer's real working tree (`~/works`) and the guard let it through:
+//   1. `internals.remove` is replaced by a spy whose real implementation
+//      refuses any path outside `tmpdir()`.
+//   2. every refusal case asserts the spy was never called.
+// A new case must never call the handler with a path it does not own.
+//
 //   node test/host.test.mjs
 import { mkdtemp, mkdir, rm, stat } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { apply as applyHost, inject, name } from '../host.js'
+import { dirname, join, resolve, sep } from 'node:path'
+import { apply as applyHost, inject, internals, name } from '../host.js'
+
+const removeCalls = []
+const realRemove = internals.remove
+internals.remove = async (target) => {
+  const resolved = resolve(String(target))
+  if (!resolved.startsWith(resolve(tmpdir()) + sep)) {
+    throw new Error('TEST SAFETY RAIL: refused to remove a path outside tmpdir: ' + resolved)
+  }
+  removeCalls.push(resolved)
+  return realRemove(target)
+}
 
 let failures = 0
 function check(label, condition, detail) {
@@ -124,12 +143,37 @@ async function main() {
   res = await callRoute(route, { request: makeRequest({ workspaceId: 'ws-3', confirm: 'root' }) })
   check('a workspace pointing at the volume root is refused', res.statusCode === 400 && res.json().code === 'forbidden-path', res.statusCode)
 
-  registry = [{ id: 'ws-4', path: join(homedir(), 'works'), title: 'ancestor', sessionIds: [] }]
+  // `dirname(homedir())` is a real ancestor (`/Users` on macOS): the guard must
+  // refuse it. If the guard ever regresses, the safety rail turns the removal
+  // into a caught error instead of a disaster.
+  registry = [{ id: 'ws-4', path: dirname(homedir()), title: 'ancestor', sessionIds: [] }]
   res = await callRoute(route, { request: makeRequest({ workspaceId: 'ws-4', confirm: 'ancestor' }) })
   check('a workspace that is an ancestor of the home directory is refused', res.statusCode === 400 && res.json().code === 'forbidden-path', res.statusCode)
 
+  // This used to be the case that deleted a developer's working tree: the path
+  // was a *child* of home, so the guard let it through, and the test then drove
+  // the real remover. Every refusal now also asserts that no removal was even
+  // attempted, and the seam below refuses to touch anything outside tmpdir.
+  check('no removal was attempted for any refusal', removeCalls.length === 0, JSON.stringify(removeCalls))
+
+  section('a target that contains another workspace')
+  const outer = join(root, 'outer')
+  const inner = join(outer, 'inner')
+  await mkdir(inner, { recursive: true })
+  registry = [
+    { id: 'ws-outer', path: outer, title: 'outer', sessionIds: [] },
+    { id: 'ws-inner', path: inner, title: 'inner', sessionIds: ['session-A'] },
+  ]
+  res = await callRoute(route, { request: makeRequest({ workspaceId: 'ws-outer', confirm: 'outer' }) })
+  check('deleting a directory that holds another workspace is refused', res.statusCode === 400 && res.json().code === 'contains-workspace', res.statusCode)
+  check('the outer tree survived', (await stat(join(inner, '..'))).isDirectory())
+  check('still no removal was attempted', removeCalls.length === 0, JSON.stringify(removeCalls))
+
   section('delete')
   registry = [entity]
+  archived.length = 0
+  deleted.length = 0
+  removeCalls.length = 0
   res = await callRoute(route, { request: makeRequest({ workspaceId: 'ws-1', confirm: 'vino' }) })
   const payload = res.json()
   check('a confirmed delete succeeds', res.statusCode === 200 && payload && payload.ok === true, res.statusCode)
@@ -141,15 +185,18 @@ async function main() {
     gone = true
   }
   check('the directory tree is actually gone', gone)
+  check('the removal went through the seam exactly once', removeCalls.length === 1 && removeCalls[0] === workspacePath, JSON.stringify(removeCalls))
   check('its sessions were archived', JSON.stringify(archived) === '["session-A","session-B"]', JSON.stringify(archived))
   check('the registration was dropped', JSON.stringify(deleted) === '["ws-1"]', JSON.stringify(deleted))
 
   section('stale registration')
   archived.length = 0
   deleted.length = 0
+  removeCalls.length = 0
   registry = [{ id: 'ws-5', path: join(root, 'already-gone'), title: 'gone', sessionIds: [] }]
   res = await callRoute(route, { request: makeRequest({ workspaceId: 'ws-5', confirm: 'gone' }) })
   check('a missing directory still settles the registration', res.statusCode === 200 && res.json().removed === false, JSON.stringify(res.json()))
+  check('a missing directory never reaches the remover', removeCalls.length === 0, JSON.stringify(removeCalls))
   check('the registration is dropped even when the directory was missing', JSON.stringify(deleted) === '["ws-5"]', JSON.stringify(deleted))
 
   await rm(root, { recursive: true, force: true })

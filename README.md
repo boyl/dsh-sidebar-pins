@@ -1,3 +1,5 @@
+[![Downloads](https://img.shields.io/github/downloads/boyl/dsh-sidebar-pins/total?label=Downloads&color=blue)](https://github.com/boyl/dsh-sidebar-pins/releases) [![Stars](https://img.shields.io/github/stars/boyl/dsh-sidebar-pins?label=Stars)](https://github.com/boyl/dsh-sidebar-pins/stargazers) [![Latest Release](https://img.shields.io/github/v/release/boyl/dsh-sidebar-pins?label=Release)](https://github.com/boyl/dsh-sidebar-pins/releases/latest) [![License](https://img.shields.io/github/license/boyl/dsh-sidebar-pins?label=License)](https://github.com/boyl/dsh-sidebar-pins/blob/HEAD/LICENSE)
+
 # dsh-sidebar-pins
 
 给 DeepSeek Harness Web GUI 的**一套**侧栏会话管理：Codex 式的「置顶 / 最近」两栏，加上**所有行**都能用的完整右键菜单。
